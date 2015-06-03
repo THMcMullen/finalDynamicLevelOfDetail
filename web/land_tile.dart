@@ -68,6 +68,8 @@ class land_tile{
     gl.bufferDataTyped(ARRAY_BUFFER, new Float32List.fromList(data[3]), STATIC_DRAW);
     numberOfTri = data[2].length;
     ready = true;
+    
+    print(heightMap.length);
   }
   
   dataSend(){
@@ -131,12 +133,16 @@ class land_tile{
           void main(void) {
 
               vec4 color = pos;
-              float alpha = color.y / 5.0;
+              float alpha = color.y / 10.0;
 
               if(color.y < 5.0)
-                color = vec4(0.0, 0.0,1.0, 1.0);
+                color = vec4(0.688, 0.875, 0.898, alpha + 0.5);
+              else if(color.y < 7.0)
+                color = vec4(0.887, 0.739, 0.557, alpha + 0.2);
+              else if(color.y < 10.5)
+                color = vec4(0.420, 0.557, 0.137, alpha - 0.1);
               else
-                color = vec4(0.0, 1.0, 0.0, 1.0);
+                color = vec4(0.439, 0.502, 0.565, 1.0/alpha - 0.3);
               
           
               gl_FragColor = color;

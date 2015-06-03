@@ -63,7 +63,7 @@ class water{
             gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
 
             pos = vec3(uMVMatrix * vec4(aVertexPosition, 1.0));
-            norm = vec3(uMVMatrix * vec4(aVertexNormal, 0.0));
+            norm = aVertexNormal;
            
         
       }""";
@@ -163,16 +163,12 @@ class water{
       
       sNormals[i] = gl.createBuffer();
       gl.bindBuffer(RenderingContext.ARRAY_BUFFER, sNormals[i]);
-      gl.bufferDataTyped(RenderingContext.ARRAY_BUFFER, new Float32List.fromList(data[1][i][1]), STATIC_DRAW);
+      gl.bufferDataTyped(RenderingContext.ARRAY_BUFFER, new Float32List.fromList(data[1][i][2]), STATIC_DRAW);
       static[i][2] = sNormals[i];
       
       static[i][3] = data[1][i][0].length;
-      
-      print(data[1][i][0].length);
-      print(data[1][i][2].length);
-      print("----------");
-      
-    }
+
+    }   
     
     List fIndices = new List(data[0].length);
     List fVertices = new List(data[0].length);
@@ -192,14 +188,13 @@ class water{
       gl.bufferDataTyped(RenderingContext.ARRAY_BUFFER, new Float32List.fromList(data[0][i][1]), DYNAMIC_DRAW);
       fluid[i][1] = fVertices[i];
       
-      //vertices[i] = data[0][i][1]; 
-      
       fNormals[i] = gl.createBuffer();
       gl.bindBuffer(RenderingContext.ARRAY_BUFFER, fNormals[i]);
       gl.bufferDataTyped(RenderingContext.ARRAY_BUFFER, new Float32List.fromList(data[0][i][2]), STATIC_DRAW);
       fluid[i][2] = fNormals[i];
       
-      fluid[i][3] = data[0][i][0].length;      
+      fluid[i][3] = data[0][i][0].length;   
+
     }
 
     ready = true;
@@ -249,17 +244,17 @@ class water{
         gl.drawElements(TRIANGLES, static[i][3], UNSIGNED_SHORT, 0);
       }
       //render dynamic objects
-      /*for(int i = 0; i < fluid.length; i++){
+      for(int i = 0; i < fluid.length; i++){
         gl.bindBuffer(ARRAY_BUFFER, fluid[i][1]);
         gl.vertexAttribPointer(attributes['aVertexPosition'], 3, FLOAT, false, 0, 0);
 
-        //gl.bindBuffer(ARRAY_BUFFER, fluid[i][2]);
-        //gl.vertexAttribPointer(attributes['aVertexNormal'], 3, FLOAT, false, 0, 0);
+        gl.bindBuffer(ARRAY_BUFFER, fluid[i][2]);
+        gl.vertexAttribPointer(attributes['aVertexNormal'], 3, FLOAT, false, 0, 0);
         
         gl.bindBuffer(ELEMENT_ARRAY_BUFFER, fluid[i][0]);
         gl.drawElements(TRIANGLES, fluid[i][3], UNSIGNED_SHORT, 0);
-      }*/
-    }
+      }
+    }    
   }
   
 }

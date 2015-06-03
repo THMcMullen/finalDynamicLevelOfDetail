@@ -39,7 +39,7 @@ main(List<String> args, SendPort sendPort) {
     heightMap[res-1][res-1] = 10.0;
     
     var height = 10;
-    var rng = new math.Random(82);
+    var rng = new math.Random(locX + locY + 82);
     
     int sideLength2 = res - 1; 
     //diamond square implemtation

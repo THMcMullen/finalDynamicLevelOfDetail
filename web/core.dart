@@ -25,6 +25,8 @@ class core{
   //for testing
   land_tile baseLand;
   water baseWater;
+  land_tile secondLand;
+  water secondWater;
   
   //what all tiles base the size on
   int baseSystemSize = 129;
@@ -47,7 +49,21 @@ class core{
     
   }
   //loads in the imagesused for creating the skybox texture
-  load(){
+  loadTextures() {
+    skyBox = gl.createTexture();
+    gl.bindTexture(TEXTURE_CUBE_MAP, skyBox);
+    for (int i = 0; i < images.length; i++) {
+      gl.texImage2D(TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, RGB, RGB, UNSIGNED_BYTE,
+          images[i]);
+    }
+
+    gl.texParameteri(TEXTURE_CUBE_MAP, TEXTURE_MAG_FILTER, LINEAR);
+    gl.texParameteri(TEXTURE_CUBE_MAP, TEXTURE_MIN_FILTER, LINEAR);
+    gl.texParameteri(TEXTURE_CUBE_MAP, TEXTURE_WRAP_S, CLAMP_TO_EDGE);
+    gl.texParameteri(TEXTURE_CUBE_MAP, TEXTURE_WRAP_T, CLAMP_TO_EDGE);
+  }
+
+  void load() {
     ImageElement right = new ImageElement(src: "images/right.jpg");
     ImageElement left = new ImageElement(src: "images/left.jpg");
     ImageElement top = new ImageElement(src: "images/top.jpg");
@@ -67,26 +83,13 @@ class core{
 
     Future.wait(futures).then((_) => loadTextures());
   }
-  //create the skybox texture
-  loadTextures(){
-    skyBox = gl.createTexture();
-    gl.bindTexture(TEXTURE_CUBE_MAP, skyBox);
-    for(int i = 0; i < images.length; i++){
-      gl.texImage2D(TEXTURE_CUBE_MAP_POSITIVE_X + 1, 0, RGBA, RGBA, UNSIGNED_BYTE, images[i]);
-    }
-    gl.texParameteri(TEXTURE_CUBE_MAP, TEXTURE_MAG_FILTER, LINEAR);
-    gl.texParameteri(TEXTURE_CUBE_MAP, TEXTURE_MIN_FILTER, LINEAR);
-    gl.texParameteri(TEXTURE_CUBE_MAP, TEXTURE_WRAP_S, CLAMP_TO_EDGE);
-    gl.texParameteri(TEXTURE_CUBE_MAP, TEXTURE_WRAP_T, CLAMP_TO_EDGE); 
-    
-    print("textures loaded");
-  }
   
   initWater(){
-    if(baseLand.heightMap == null){
+    if(baseLand.heightMap == null || secondLand.heightMap == null){
       new Future.delayed(const Duration(milliseconds: 15), initWater); 
     } else {
       baseWater = new water(gl, baseLand.heightMap, 0, 0, 1);
+      secondWater = new water(gl, secondLand.heightMap, 0, 1, 1);
     }
   }
   
@@ -94,6 +97,8 @@ class core{
   initState(){
     baseLand = new land_tile();
     baseLand.initLand(gl, baseSystemSize, 0, 0);
+    secondLand = new land_tile();
+    secondLand.initLand(gl, 65, 0, 1);
     
     initWater();
   }
@@ -109,6 +114,9 @@ class core{
     if(baseWater != null){
       baseWater.update();
     }
+    if(secondWater != null){
+      secondWater.update();
+    }
   }
   
   draw(){
@@ -120,8 +128,10 @@ class core{
     gl.bindTexture(TEXTURE_CUBE_MAP, skyBox);
     
     baseLand.draw(viewMat, projectionMat);
-    if(baseWater != null){
-      baseWater.draw(viewMat, projectionMat);
+    secondLand.draw(viewMat, projectionMat);
+    if(baseWater != null && secondWater != null){
+      //baseWater.draw(viewMat, projectionMat);
+      //secondWater.draw(viewMat, projectionMat);
     }
   }
 }

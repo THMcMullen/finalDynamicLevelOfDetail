@@ -15,6 +15,8 @@ main(List<String> args, SendPort sendPort) {
   List fluid;
   
   int res;
+  int locX;
+  int locY;
   
   int numOctaves = 1;
   double change = 1.0;
@@ -37,9 +39,9 @@ main(List<String> args, SendPort sendPort) {
     for(int i = 0; (i < waterBodies[index].length); i++){
       for(int j = 0; (j < waterBodies[index][i].length); j++){
         if(waterBodies[index][i][j] != 0){//current location is water
-          vertices.add(minY + j.toDouble() -1);
+          vertices.add(((minY + j.toDouble() -1) * 128/res-1) + (locX*128));
           vertices.add(5.0);
-          vertices.add(minX + i.toDouble() -1);
+          vertices.add(((minX + i.toDouble() -1) * 128/res-1) + (locY*128));
         }
       }
     }
@@ -185,7 +187,7 @@ main(List<String> args, SendPort sendPort) {
       size = ((waterBodies[i].length + waterBodies[i][0].length) / 2);
       if(size > minSize){
         createFluid(i);
-      }else if(size > 5){
+      }else if(size > 9){
         createStatic(i);
       }
     }
@@ -311,6 +313,13 @@ main(List<String> args, SendPort sendPort) {
         }
       }
     }
+    /*
+    for(int i = 0; i < waterBodies.length; i++){
+      print("--------------------");
+      for(int j = 0; j < waterBodies[i].length; j++){
+        print(waterBodies[i][j]);
+      }
+    }*/
     
     blob = null;
     offset = [minX, maxX, minY, maxY];   
@@ -340,17 +349,18 @@ main(List<String> args, SendPort sendPort) {
         for(int i = 0; i < waterBodies[h].length; i++){
           for(int j = 0; j < waterBodies[h][i].length; j++){
             if(waterBodies[h][i][j] != 0){
-              if(waterBodies[h][i][j] == 200){//is an added edge, create points,b ut do not change the value
-                vertices.add(minY + j.toDouble() -1);
+              if((waterBodies[h][i][j] == 200) || (minX + i == res) || (minY + j == res) || (minY + j == 1) || (minX + i == 1) ){//is an added edge, create points, but do not change the value
+                vertices.add(((minY + j.toDouble() -1) * 128/res-1) + (locX*128));
                 vertices.add(5.0);
-                vertices.add(minX + i.toDouble() -1);
+                vertices.add(((minX + i.toDouble() -1) * 128/res-1) + (locY*128));
               }else{//change the height value
-                vertices.add(minY + j.toDouble() -1);
+                vertices.add(((minY + j.toDouble() -1) * 128/res-1) + (locX*128));
                 //now add the new height value
-                y = perlinOctaveNoise(minY.toDouble() + i*2/res, minX.toDouble() + j*2/res, change, 1.0, 1+numOctaves, 1.0/math.sqrt(2.0))*50;
+                y = perlinOctaveNoise(i*2/res, j*2/res, change, 1.0, 1+numOctaves, 1.0/math.sqrt(2.0))*50;
+                y = y + 1.0;
                 
                 vertices.add(y);
-                vertices.add(minX + i.toDouble() -1);                
+                vertices.add(((minX + i.toDouble() -1) * 128/res-1) + (locY*128));                
               }
             }
           }
@@ -364,8 +374,11 @@ main(List<String> args, SendPort sendPort) {
   
   receivePort.listen((msg) {
     //sendPort.send("Recieved Water");
-    res = 129;
+    
     if(msg[0] == "init"){
+      res = msg[1].length;
+      locX = msg[2];
+      locY = msg[3];
       trace(msg[1]);
     }else if(msg[0] == "update"){
       update();
