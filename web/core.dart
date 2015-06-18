@@ -28,6 +28,8 @@ class core{
   land_tile secondLand;
   water secondWater;
   
+  List landContainer;
+  
   //what all tiles base the size on
   int baseSystemSize = 129;
 
@@ -85,20 +87,36 @@ class core{
   }
   
   initWater(){
-    if(baseLand.heightMap == null || secondLand.heightMap == null){
+    if( landContainer[0][0].heightMap == null || landContainer[0][1].heightMap == null){
       new Future.delayed(const Duration(milliseconds: 15), initWater); 
     } else {
-      baseWater = new water(gl, baseLand.heightMap, 0, 0, 1);
-      secondWater = new water(gl, secondLand.heightMap, 0, 1, 1);
+      baseWater = new water(gl,  landContainer[0][0].heightMap, 0, 0, 1);
+      secondWater = new water(gl, landContainer[0][1].heightMap, 0, 1, 1);
+      makeEdge();
     }
   }
   
   //creates the first tile in the system, based on performance recompute terrian state in order to best perfrom 
   initState(){
-    baseLand = new land_tile();
+    /*baseLand = new land_tile();
     baseLand.initLand(gl, baseSystemSize, 0, 0);
     secondLand = new land_tile();
-    secondLand.initLand(gl, 65, 0, 1);
+    secondLand.initLand(gl, 65, 0, 1);*/
+    
+    landContainer = new List();
+    for(int i = 0; i < 100; i++){
+      landContainer.add(new List<land_tile>());
+      for(int j = 0; j < 100; j++){
+        landContainer[i].add(null);
+      }
+    }
+    
+    landContainer[0][0] = new land_tile();
+    landContainer[0][0].initLand(gl, baseSystemSize, 0, 0);
+    
+    landContainer[0][1] = new land_tile();
+    landContainer[0][1].initLand(gl, 65, 0, 1);
+    
     
     initWater();
   }
@@ -119,6 +137,84 @@ class core{
     }
   }
   
+  List edgeIncrease(List edge){
+    
+    
+    return edge;
+  }
+  
+  List edgeReduce(List edge){
+    
+    List tempEdge = new List(65);
+    
+    for(int i = 0; i < 64; i++){
+      tempEdge[i] = (edge[i*2] + edge[(i*2)+1])/2;
+    }
+    tempEdge[64] = edge[128];
+    
+    return tempEdge;
+  }
+  
+  makeEdge(){
+
+    List topEdge = new List<double>();
+    
+    for(int i = 0; i < 1; i++){
+      for(int j = 0; j < 1; j++){
+        if(landContainer[i][j] != null){
+          topEdge = null;
+          //this tile is ready and has data
+          //check to make the top edge, where y is max. This requires a tile above to exist
+          if(landContainer[i][j+1] != null){
+            topEdge = new List<double>();
+            List edgeOne = new List();
+            List edgeTwo = new List();
+            for(int k = 0; k < landContainer[i][j+1].res; k++){
+              edgeOne.add(landContainer[i][j+1].heightMap[k][landContainer[i][j+1].res - 1]);
+            }
+            for(int k = 0; k < landContainer[i][j].res; k++){
+              edgeTwo.add(landContainer[i][j].heightMap[k][landContainer[i][j].res-1]);
+            }
+
+            if(edgeOne.length > 65){
+              print("edgeOne is reduced");
+            }else if(edgeOne.length < 65){
+              print("edgeOne is increased");
+              
+            }
+            
+            if(edgeTwo.length > 65){
+              print("edgeTwo is reduced");
+              
+              edgeTwo = edgeReduce(edgeTwo);
+              
+            }else if(edgeTwo.length < 65){
+              print("edgeTwo is increased");
+              
+            }
+            
+            
+            print(edgeTwo);
+            for(int k = 0; k < 65; k++){
+              double temp = (edgeOne[k] + edgeTwo[k])/2;
+              
+              topEdge.add(temp);
+            }
+            
+            print("edgeOne : $edgeOne");
+            print("edgeTwo : $edgeTwo");
+          }
+          
+          landContainer[i][j].makeEdges(null,topEdge,null,null);
+          landContainer[0][1].makeEdges(topEdge,null,null,null);
+        }
+        
+      }
+    }
+    
+    
+  }
+  
   draw(){
     
     gl.clear(RenderingContext.COLOR_BUFFER_BIT | RenderingContext.DEPTH_BUFFER_BIT);
@@ -127,8 +223,8 @@ class core{
     
     gl.bindTexture(TEXTURE_CUBE_MAP, skyBox);
     
-    baseLand.draw(viewMat, projectionMat);
-    secondLand.draw(viewMat, projectionMat);
+    landContainer[0][0].draw(viewMat, projectionMat);
+    landContainer[0][1].draw(viewMat, projectionMat);
     if(baseWater != null && secondWater != null){
       //baseWater.draw(viewMat, projectionMat);
       //secondWater.draw(viewMat, projectionMat);

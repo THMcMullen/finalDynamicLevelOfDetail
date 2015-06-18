@@ -39,9 +39,9 @@ main(List<String> args, SendPort sendPort) {
     for(int i = 0; (i < waterBodies[index].length); i++){
       for(int j = 0; (j < waterBodies[index][i].length); j++){
         if(waterBodies[index][i][j] != 0){//current location is water
-          vertices.add(((minY + j.toDouble() -1) * 128/res-1) + (locX*128));
+          vertices.add(((minY + j.toDouble()) * 128/res-1) + (locX*128));
           vertices.add(5.0);
-          vertices.add(((minX + i.toDouble() -1) * 128/res-1) + (locY*128));
+          vertices.add(((minX + i.toDouble()) * 128/res-1) + (locY*128));
         }
       }
     }
@@ -350,17 +350,17 @@ main(List<String> args, SendPort sendPort) {
           for(int j = 0; j < waterBodies[h][i].length; j++){
             if(waterBodies[h][i][j] != 0){
               if((waterBodies[h][i][j] == 200) || (minX + i == res) || (minY + j == res) || (minY + j == 1) || (minX + i == 1) ){//is an added edge, create points, but do not change the value
-                vertices.add(((minY + j.toDouble() -1) * 128/res-1) + (locX*128));
+                vertices.add(((minY + j.toDouble() ) * 128/res-1) + (locX*128));
                 vertices.add(5.0);
-                vertices.add(((minX + i.toDouble() -1) * 128/res-1) + (locY*128));
+                vertices.add(((minX + i.toDouble() ) * 128/res-1) + (locY*128));
               }else{//change the height value
-                vertices.add(((minY + j.toDouble() -1) * 128/res-1) + (locX*128));
+                vertices.add(((minY + j.toDouble() ) * 128/res-1) + (locX*128));
                 //now add the new height value
                 y = perlinOctaveNoise(i*2/res, j*2/res, change, 1.0, 1+numOctaves, 1.0/math.sqrt(2.0))*50;
                 y = y + 1.0;
                 
                 vertices.add(y);
-                vertices.add(((minX + i.toDouble() -1) * 128/res-1) + (locY*128));                
+                vertices.add(((minX + i.toDouble() ) * 128/res-1) + (locY*128));                
               }
             }
           }
