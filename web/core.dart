@@ -10,8 +10,8 @@ import 'camera.dart' as cam;
 import 'land_tile.dart';
 import 'water.dart';
 
-class core{
- 
+class core {
+
   //base variables to use for webgl
   RenderingContext gl;
   CanvasElement canvas;
@@ -21,34 +21,38 @@ class core{
   //texture infomation
   List images;
   Texture skyBox;
-  
+
   //for testing
   land_tile baseLand;
   water baseWater;
   land_tile secondLand;
   water secondWater;
   
+  water three;
+  water four;
+
   List landContainer;
-  
+
   //what all tiles base the size on
   int baseSystemSize = 129;
 
-  core(RenderingContext gGl, CanvasElement gCanvas){
+  core(RenderingContext gGl, CanvasElement gCanvas) {
     gl = gGl;
     canvas = gCanvas;
-        
+
     //setup camera and projection matrix
     camera = new cam.camera(canvas);
-    projectionMat = makePerspectiveMatrix(45, (canvas.width / canvas.height), 1, 10000);
-    setPerspectiveMatrix(projectionMat, 45, (canvas.width / canvas.height), 1.0, 10000.0);
+    projectionMat =
+        makePerspectiveMatrix(45, (canvas.width / canvas.height), 1, 10000);
+    setPerspectiveMatrix(
+        projectionMat, 45, (canvas.width / canvas.height), 1.0, 10000.0);
 
     gl.clearColor(1.0, 1.0, 1.0, 1.0);
     gl.clearDepth(1.0);
     gl.enable(RenderingContext.DEPTH_TEST);
-    
+
     //load in skybox
     load();
-    
   }
   //loads in the imagesused for creating the skybox texture
   loadTextures() {
@@ -85,168 +89,301 @@ class core{
 
     Future.wait(futures).then((_) => loadTextures());
   }
-  
-  initWater(){
-    if( landContainer[0][0].heightMap == null || landContainer[0][1].heightMap == null){
-      new Future.delayed(const Duration(milliseconds: 15), initWater); 
+
+  initWater() {
+    if (landContainer[0][0].heightMap == null ||
+        landContainer[0][1].heightMap == null ||
+        landContainer[1][0].heightMap == null ||
+        landContainer[1][1].heightMap == null /*||
+        landContainer[2][1].heightMap == null ||
+        landContainer[1][2].heightMap == null ||
+        landContainer[0][2].heightMap == null ||
+        landContainer[2][0].heightMap == null */
+    ) {
+      new Future.delayed(const Duration(milliseconds: 15), initWater);
     } else {
-      baseWater = new water(gl,  landContainer[0][0].heightMap, 0, 0, 1);
+      baseWater = new water(gl, landContainer[0][0].heightMap, 0, 0, 1);
       secondWater = new water(gl, landContainer[0][1].heightMap, 0, 1, 1);
+      three = new water(gl, landContainer[1][0].heightMap, 1, 0, 1);
+      four = new water(gl, landContainer[1][1].heightMap, 1, 1, 1);
       makeEdge();
     }
   }
-  
-  //creates the first tile in the system, based on performance recompute terrian state in order to best perfrom 
-  initState(){
+
+  //creates the first tile in the system, based on performance recompute terrian state in order to best perfrom
+  initState() {
     /*baseLand = new land_tile();
     baseLand.initLand(gl, baseSystemSize, 0, 0);
     secondLand = new land_tile();
     secondLand.initLand(gl, 65, 0, 1);*/
-    
+
     landContainer = new List();
-    for(int i = 0; i < 100; i++){
+    for (int i = 0; i < 100; i++) {
       landContainer.add(new List<land_tile>());
-      for(int j = 0; j < 100; j++){
+      for (int j = 0; j < 100; j++) {
         landContainer[i].add(null);
       }
     }
-    
+
     landContainer[0][0] = new land_tile();
     landContainer[0][0].initLand(gl, baseSystemSize, 0, 0);
-    
+
     landContainer[0][1] = new land_tile();
     landContainer[0][1].initLand(gl, 65, 0, 1);
+
+    landContainer[1][0] = new land_tile();
+    landContainer[1][0].initLand(gl, 65, 1, 0);
+
+    landContainer[1][1] = new land_tile();
+    landContainer[1][1].initLand(gl, 33, 1, 1);
     
+    /*landContainer[0][2] = new land_tile();
+    landContainer[0][2].initLand(gl, 33, 0, 2);
     
+    landContainer[2][0] = new land_tile();
+    landContainer[2][0].initLand(gl, 33, 2, 0);
+    
+    landContainer[1][2] = new land_tile();
+    landContainer[1][2].initLand(gl, 65, 1, 2);
+    
+    landContainer[2][1] = new land_tile();
+    landContainer[2][1].initLand(gl, 65, 2, 1);*/
+
     initWater();
   }
-  
+
   //compute the initial state of the scene, which best suits the device
-  setup(){
+  setup() {
     initState();
-   
   }
-  
-  update(){
+
+  update() {
     camera.update();
-    if(baseWater != null){
+    if (baseWater != null) {
       baseWater.update();
     }
-    if(secondWater != null){
+    if (secondWater != null) {
       secondWater.update();
     }
   }
-  
-  List edgeIncrease(List edge){
-    
-    
-    return edge;
-  }
-  
-  List edgeReduce(List edge){
-    
-    List tempEdge = new List(65);
-    
-    for(int i = 0; i < 64; i++){
-      tempEdge[i] = (edge[i*2] + edge[(i*2)+1])/2;
+
+  List edgeIncrease(List edge) {
+    List tempEdge = new List();
+
+    for (int i = 0; i < 65; i++) {
+      tempEdge.add(10.0);
     }
-    tempEdge[64] = edge[128];
-    
+
     return tempEdge;
   }
-  
-  makeEdge(){
 
+  List edgeReduce(List edge) {
+    List tempEdge = new List(65);
+
+    for (int i = 0; i < 64; i++) {
+      tempEdge[i] = (edge[i * 2] + edge[(i * 2) + 1]) / 2;
+    }
+    tempEdge[64] = edge[128];
+
+    return tempEdge;
+  }
+
+  makeEdge() {
     List topEdge = new List<double>();
-    
-    for(int i = 0; i < 1; i++){
-      for(int j = 0; j < 1; j++){
-        if(landContainer[i][j] != null){
+    List botEdge = new List<double>();
+    List iPlusOne = new List<double>();
+    List iMinusOne = new List<double>();
+
+    for (int i = 0; i < 100; i++) {
+      for (int j = 0; j < 100; j++) {
+        if (landContainer[i][j] != null) {
+          print("I:$i , J:$j");
           topEdge = null;
+          botEdge = null;
+          iPlusOne = null;
+          iMinusOne = null;
+
           //this tile is ready and has data
           //check to make the top edge, where y is max. This requires a tile above to exist
-          if(landContainer[i][j+1] != null){
-            topEdge = new List<double>();
-            List edgeOne = new List();
-            List edgeTwo = new List();
-            for(int k = 0; k < landContainer[i][j+1].res; k++){
-              edgeOne.add(landContainer[i][j+1].heightMap[k][landContainer[i][j+1].res - 1]);
-            }
-            for(int k = 0; k < landContainer[i][j].res; k++){
-              edgeTwo.add(landContainer[i][j].heightMap[k][landContainer[i][j].res-1]);
-            }
+          if (j + 1 <= 100) {
+            if (landContainer[i][j + 1] != null) {
+              topEdge = new List<double>();
+              List edgeOne = new List();
+              List edgeTwo = new List();
+              for (int k = 0; k < landContainer[i][j + 1].res; k++) {
+                edgeOne.add(landContainer[i][j + 1].heightMap[k][1]);
+              }
+              for (int k = 0; k < landContainer[i][j].res; k++) {
+                edgeTwo.add(landContainer[i][j].heightMap[k][
+                    landContainer[i][j].res - 2]);
+              }
 
-            if(edgeOne.length > 65){
-              print("edgeOne is reduced");
-            }else if(edgeOne.length < 65){
-              print("edgeOne is increased");
-              
+              if (edgeOne.length > 65) {
+                edgeOne = edgeReduce(edgeOne);
+              } else if (edgeOne.length < 65) {
+                edgeOne = edgeIncrease(edgeOne);
+              }
+
+              if (edgeTwo.length > 65) {
+                edgeTwo = edgeReduce(edgeTwo);
+              } else if (edgeTwo.length < 65) {
+                edgeTwo = edgeIncrease(edgeTwo);
+              }
+
+              for (int k = 0; k < 65; k++) {
+                double temp = (edgeTwo[k] + edgeOne[k]) / 2;
+                topEdge.add(temp);
+              }
             }
-            
-            if(edgeTwo.length > 65){
-              print("edgeTwo is reduced");
-              
-              edgeTwo = edgeReduce(edgeTwo);
-              
-            }else if(edgeTwo.length < 65){
-              print("edgeTwo is increased");
-              
-            }
-            
-            
-            print(edgeTwo);
-            for(int k = 0; k < 65; k++){
-              double temp = (edgeOne[k] + edgeTwo[k])/2;
-              
-              topEdge.add(temp);
-            }
-            
-            print("edgeOne : $edgeOne");
-            print("edgeTwo : $edgeTwo");
           }
-          
-          landContainer[i][j].makeEdges(null,topEdge,null,null);
-          landContainer[0][1].makeEdges(topEdge,null,null,null);
+          if (j - 1 >= 0) {
+            if (landContainer[i][j - 1] != null) {
+              botEdge = new List<double>();
+              List edgeOne = new List();
+              List edgeTwo = new List();
+              for (int k = 0; k < landContainer[i][j - 1].res; k++) {
+                edgeOne.add(landContainer[i][j - 1].heightMap[k][
+                    landContainer[i][j - 1].res - 2]);
+              }
+              for (int k = 0; k < landContainer[i][j].res; k++) {
+                edgeTwo.add(landContainer[i][j].heightMap[k][1]);
+              }
+
+              if (edgeOne.length > 65) {
+                edgeOne = edgeReduce(edgeOne);
+              } else if (edgeOne.length < 65) {
+                edgeOne = edgeIncrease(edgeOne);
+              }
+
+              if (edgeTwo.length > 65) {
+                edgeTwo = edgeReduce(edgeTwo);
+              } else if (edgeTwo.length < 65) {
+                edgeTwo = edgeIncrease(edgeTwo);
+              }
+
+              for (int k = 0; k < 65; k++) {
+                double temp = (edgeTwo[k] + edgeOne[k]) / 2;
+                botEdge.add(temp);
+              }
+            }
+          }
+
+          if (i + 1 <= 100) {
+            if (landContainer[i + 1][j] != null) {
+              iMinusOne = new List<double>();
+              List edgeOne = new List();
+              List edgeTwo = new List();
+
+              for (int k = 0; k < landContainer[i + 1][j].res; k++) {
+                edgeOne.add(landContainer[i + 1][j].heightMap[k][1]);
+              }
+              for (int k = 0; k < landContainer[i][j].res; k++) {
+                edgeTwo.add(landContainer[i][j].heightMap[k][landContainer[i][j].res -2]);
+              }
+
+              if (edgeOne.length > 65) {
+                edgeOne = edgeReduce(edgeOne);
+              } else if (edgeOne.length < 65) {
+                edgeOne = edgeIncrease(edgeOne);
+              }
+
+              if (edgeTwo.length > 65) {
+                edgeTwo = edgeReduce(edgeTwo);
+              } else if (edgeTwo.length < 65) {
+                edgeTwo = edgeIncrease(edgeTwo);
+              }
+
+              for (int k = 0; k < 65; k++) {
+                double temp = (edgeTwo[k] + edgeOne[k]) / 2;
+
+                iMinusOne.add(temp);
+              }
+            }
+          }
+
+          if (i - 1 >= 0) {
+            if (landContainer[i - 1][j] != null) {
+              iPlusOne = new List();
+              List edgeOne = new List();
+              List edgeTwo = new List();
+
+              for (int k = 0; k < landContainer[i - 1][j].res; k++) {
+                edgeOne.add(landContainer[i - 1][j].heightMap[k][
+                    landContainer[i - 1][j].res - 2]);
+              }
+              for (int k = 0; k < landContainer[i][j].res; k++) {
+                edgeTwo.add(landContainer[i][j].heightMap[k][1]);
+              }
+
+              if (edgeOne.length > 65) {
+                edgeOne = edgeReduce(edgeOne);
+              } else if (edgeOne.length < 65) {
+                edgeOne = edgeIncrease(edgeOne);
+              }
+
+              if (edgeTwo.length > 65) {
+                edgeTwo = edgeReduce(edgeTwo);
+              } else if (edgeTwo.length < 65) {
+                edgeTwo = edgeIncrease(edgeTwo);
+              }
+
+              for (int k = 0; k < 65; k++) {
+                double temp = (edgeTwo[k] + edgeOne[k]) / 2;
+
+                iPlusOne.add(temp);
+              }
+            }
+          }
+/*
+          List testEdge = new List();
+
+          for (int k = 0; k < 65; k++) {
+            testEdge.add(-10.0);
+          }
+          if (topEdge == null) {
+            print("top");
+          }
+          if (botEdge == null) {
+            print("botEdge");
+          }
+          if (iPlusOne == null) {
+            print("iPlusOne");
+          }
+          if (iMinusOne == null) {
+            print("iMinusOne");
+          }*/
+          landContainer[i][j].makeEdges(iMinusOne, iPlusOne, botEdge, topEdge);
         }
-        
+      }
+    }
+  }
+
+  draw() {
+    gl.clear(
+        RenderingContext.COLOR_BUFFER_BIT | RenderingContext.DEPTH_BUFFER_BIT);
+
+    Matrix4 viewMat = camera.getViewMat();
+
+    gl.bindTexture(TEXTURE_CUBE_MAP, skyBox);
+/*
+    landContainer[0][0].draw(viewMat, projectionMat);
+    landContainer[0][1].draw(viewMat, projectionMat);
+    landContainer[1][0].draw(viewMat, projectionMat);
+    landContainer[1][1].draw(viewMat, projectionMat);*/
+    
+    for(int i = 0; i < 100; i++){
+      for(int j = 0; j < 100; j++){
+        if(landContainer[i][j] != null){
+          landContainer[i][j].draw(viewMat, projectionMat);
+        }
       }
     }
     
-    
-  }
-  
-  draw(){
-    
-    gl.clear(RenderingContext.COLOR_BUFFER_BIT | RenderingContext.DEPTH_BUFFER_BIT);
-    
-    Matrix4 viewMat = camera.getViewMat();
-    
-    gl.bindTexture(TEXTURE_CUBE_MAP, skyBox);
-    
-    landContainer[0][0].draw(viewMat, projectionMat);
-    landContainer[0][1].draw(viewMat, projectionMat);
-    if(baseWater != null && secondWater != null){
-      //baseWater.draw(viewMat, projectionMat);
-      //secondWater.draw(viewMat, projectionMat);
+    if (baseWater != null && secondWater != null) {
+      baseWater.draw(viewMat, projectionMat);
+      secondWater.draw(viewMat, projectionMat);
+      three.draw(viewMat, projectionMat);
+      //four.draw(viewMat, projectionMat);
     }
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

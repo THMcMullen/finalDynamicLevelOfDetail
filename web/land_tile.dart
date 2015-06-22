@@ -74,15 +74,15 @@ class land_tile{
     numberOfTri = data[2].length;
     ready = true;
     
-    print(heightMap.length);
+    //print(heightMap.length);
   }
   
   dataSend(){
     if(sendPort == null) {
-      print("Not ready yet");
+      //print("Not ready yet");
       new Future.delayed(const Duration(milliseconds: 15), dataSend);
     } else {
-      print("Sending");
+      //print("Sending");
       sendPort.send(["init", res, locX, locY]); 
     }
   }
@@ -92,7 +92,7 @@ class land_tile{
       if (sendPort == null) {
         sendPort = msg;
       } else {
-        print("Reveiving");
+        //print("Reveiving");
         switch(msg[0]){
           case "init":
             setData(msg);
@@ -165,23 +165,19 @@ class land_tile{
     uniforms = utils.linkUniforms(gl, shader, unif);
     dataRec();
   }
-  
-  makeEdges(List minX, List maxX, List minY, List maxY){
+  //topEdge,botEdge,iPlusOne,iMinusOne
+  makeEdges(List topEdge, List botEdge, List iPlusOne, List iMinusOne){
     //add vertices for minX edge
     
 
     List ind = new List<int>();
     List vert = new List();
-
-    print("minX: $minX");
-    print("maxX: $maxX");
     
     int m = 1;
     if(res == 33){
       m = 4;
     }else if(res == 65){
       m = 2;
-      print("m");
     }
     
     edgeNumberOfTri = new List(4);
@@ -199,28 +195,23 @@ class land_tile{
 
           double multi =  ((res-1) / 64);
           
-          int r = 0;
-          if(res == 129){
-            r = 1;
-          }
-          
           for(int i = 0; i < res; i++){
-            vert.add(i.toDouble() * m);
+            vert.add((i.toDouble() * m) + (128 * locX));
             vert.add(heightMap[i][1]);
-            vert.add((128 / (65 - 1)) + (128 * locY)-r);
+            vert.add((128 / (res - 1)) + (128 * locY));
           }
 
           for(int i = 0; i < 65; i++){
-            vert.add(i.toDouble() * 2.0);
-            if(minX == null){
+            vert.add((i.toDouble() * 2.0) + (128 * locX));
+            if(iPlusOne == null){
               vert.add(10.0);
             }else{
-              vert.add(minX[i]);
+              vert.add(iPlusOne[i]);
             }
-            vert.add((128 / (65 - 1)) + (128 * locY)-2);
+            vert.add((128 / (res - 1)) + (128 * locY)-m);
           }
 
-          
+          if(res == 129){
           for(int i = 0; i < res-1; i +=2){
             ind.add(i);
             ind.add(i+1);
@@ -234,73 +225,118 @@ class land_tile{
             ind.add((res + (i / multi)).toInt());
             ind.add(((res + ((i+2) / multi)).toInt()));
           }
-          
-          /*ind.add(1);
-          ind.add(res);
-          ind.add(res+1);
-          ind.add(1);
-          ind.add(2);
-          ind.add(res+1);
-          
-          
-          ind.add(res-3);
-          ind.add(res-2);
-          ind.add(res+63);
-          ind.add(res-2);
-          ind.add(res+63);
-          ind.add(res+64);*/
+          }else if(res == 65){
+            for(int i = 0; i < res-1; i ++){
+              ind.add(i);
+              ind.add(i+1);
+              ind.add(res+i);
+              
+              ind.add(res+i);
+              ind.add(i+1);
+              ind.add(res+i+1);
 
-      
-          break;
-        case 1:
-          
-          for(int i = 0; i < 2 ; i++){
-            for(int j = 0; j < res; j++){
-              vert.add(i * (128 / (res - 1)) + (128 * locX));
-              if(i == 1){
-                vert.add(heightMap[i][j]);
-              }else{
-                vert.add(10.0);
-              }
-              vert.add(j * (128 / (res - 1)) + (128 * locY));
             }
-          }
-         /* for(int i = 1; i < res-2 ; i++){
-            for(int j = 0; j < 1 ; j++){
+          }else if(res == 33){
+            for(int i = 0; i < res - 1; i++){
+              ind.add(i);
+              ind.add(res + (i*2));
+              ind.add(res + (i*2)+1);
               
               ind.add(i);
               ind.add(i+1);
-              ind.add(res + i);
+              ind.add(res + (i*2)+1);
+              
+              ind.add(i+1);
+              ind.add(res + (i*2)+2);
+              ind.add(res + (i*2)+1);
+            }
+          }
+
+                
+          break;
+        case 1:
+          //minY
+          
+          double multi =  ((res-1) / 64);
+          
+          for(int i = 0; i < res; i++){
+            vert.add(128.0 * locX + (m*1));
+            vert.add(heightMap[1][i]);
+            vert.add(i.toDouble() * m + (128.0 * locY));
+          }
+          for(int i = 0; i < 65; i++){
+            vert.add((128.0 * locX));
+            if(botEdge == null){
+              vert.add(10.0);
+            }else{
+              vert.add(botEdge[i]);
+            }            
+            vert.add(i.toDouble() * 2.0 + (128.0 * locY));
+          }
+          
+          if(res == 129){
+          for(int i = 0; i < res-1; i +=2){
+            ind.add(i);
+            ind.add(i+1);
+            ind.add((res + (i / multi)).toInt());
+            
+            ind.add(i+1);
+            ind.add(i+2);
+            ind.add(((res + ((i+2) / multi)).toInt()));
+            
+            ind.add(i+1);
+            ind.add((res + (i / multi)).toInt());
+            ind.add(((res + ((i+2) / multi)).toInt()));
+          }
+          }else if(res == 65){
+            for(int i = 0; i < res-1; i ++){
+              ind.add(i);
               ind.add(i+1);
               ind.add(res+i);
+              
+              ind.add(res+i);
+              ind.add(i+1);
               ind.add(res+i+1);
+
             }
-          } */
-          
-          ind.add(0);
-          ind.add(0);
-          ind.add(0);
+          }else if(res == 33){
+            for(int i = 0; i < res - 1; i++){
+              ind.add(i);
+              ind.add(res + (i*2));
+              ind.add(res + (i*2)+1);
+              
+              ind.add(i);
+              ind.add(i+1);
+              ind.add(res + (i*2)+1);
+              
+              ind.add(i+1);
+              ind.add(res + (i*2)+2);
+              ind.add(res + (i*2)+1);
+            }
+          }
           
           break;
         case 2:
           
+          double multi =  ((res-1) / 64);
+          
           for(int i = 0; i < res; i++){
-            vert.add(i.toDouble() * m);
+            vert.add((i.toDouble() * m) + (128 * locX));
             vert.add(heightMap[i][res-2]);
-            vert.add((128 / (65 - 1)) + (128 * locY) + 125);
+            vert.add((128 / (65 - 1)) + (128 * locY) + 126-m);
           }
 
           for(int i = 0; i < 65; i++){
-            vert.add(i.toDouble() * 2.0);
-            if(maxX == null){
+            vert.add((i.toDouble() * 2.0) + (128 * locX));
+            if(iMinusOne == null){
               vert.add(10.0);
             }else{
-              vert.add(maxX[i]);
+              vert.add(iMinusOne[i]);
             }
             vert.add((128 / (65 - 1)) + (128 * locY) +126);
           }
           
-          double multi =  ((res-1) / 64);
+          if(res == 129){
           for(int i = 0; i < res-1; i +=2){
             ind.add(i);
             ind.add(i+1);
@@ -314,40 +350,93 @@ class land_tile{
             ind.add((res + (i / multi)).toInt());
             ind.add(((res + ((i+2) / multi)).toInt()));
           }
- 
-          
-          break;
-        case 3:
-          
-          for(int i = res-2; i < res ; i++){
-            for(int j = 0; j < res; j++){
-              vert.add(i * (128 / (res - 1)) + (128 * locX));
-              if(i == res-1){
-                vert.add(10.0);
-              }else{
-                vert.add(10.0);//heightMap[i][j]);
-              }
-              vert.add(j * (128 / (res - 1)) + (128 * locY));
-            }
-          }
+          }else if(res == 65){
+            for(int i = 0; i < res-1; i ++){
+              ind.add(i);
+              ind.add(i+1);
+              ind.add(res+i);
+              
+              ind.add(res+i);
+              ind.add(i+1);
+              ind.add(res+i+1);
 
-          /*for(int i = 1; i < res-2 ; i++){
-            for(int j = 0; j < 2 ; j++){
+            }
+          }else if(res == 33){
+            for(int i = 0; i < res - 1; i++){
+              ind.add(i);
+              ind.add(res + (i*2));
+              ind.add(res + (i*2)+1);
               
               ind.add(i);
               ind.add(i+1);
-              ind.add(res + i);
+              ind.add(res + (i*2)+1);
+              
+              ind.add(i+1);
+              ind.add(res + (i*2)+2);
+              ind.add(res + (i*2)+1);
+            }
+          }
+                  
+          break;
+        case 3://maxY
+          
+          double multi =  ((res-1) / 64);
+          
+          for(int i = 0; i < res; i++){
+            vert.add((128 / (65 - 1)) + (128 * locX) + 126-m);
+            vert.add(heightMap[res-2][i]);
+            vert.add(i.toDouble() * m + (128.0 * locY));
+          }
+          
+          for(int i = 0; i < 65; i++){
+            vert.add((128 / (65 - 1)) + (128 * locX) + 126);
+            if(topEdge == null){
+              vert.add(10.0);
+            }else{
+              vert.add(topEdge[i]);
+            }
+            vert.add(i.toDouble() * 2 + (128.0 * locY));
+          }
+          if(res == 129){
+          for(int i = 0; i < res-1; i +=2){
+            ind.add(i);
+            ind.add(i+1);
+            ind.add((res + (i / multi)).toInt());
+            
+            ind.add(i+1);
+            ind.add(i+2);
+            ind.add(((res + ((i+2) / multi)).toInt()));
+            
+            ind.add(i+1);
+            ind.add((res + (i / multi)).toInt());
+            ind.add(((res + ((i+2) / multi)).toInt()));
+          }
+          }else if(res == 65){
+            for(int i = 0; i < res-1; i ++){
+              ind.add(i);
               ind.add(i+1);
               ind.add(res+i);
+              
+              ind.add(res+i);
+              ind.add(i+1);
               ind.add(res+i+1);
+
             }
-          } 
-          break;*/
-          
-          ind.add(0);
-          ind.add(0);
-          ind.add(0);
-          
+          }else if(res == 33){
+            for(int i = 0; i < res - 1; i++){
+              ind.add(i);
+              ind.add(res + (i*2));
+              ind.add(res + (i*2)+1);
+              
+              ind.add(i);
+              ind.add(i+1);
+              ind.add(res + (i*2)+1);
+              
+              ind.add(i+1);
+              ind.add(res + (i*2)+2);
+              ind.add(res + (i*2)+1);
+            }
+          }
           
       }
       

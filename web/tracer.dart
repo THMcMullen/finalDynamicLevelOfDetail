@@ -26,6 +26,14 @@ main(List<String> args, SendPort sendPort) {
     
     int minX = offset[0][index];
     int minY = offset[2][index];
+    
+    
+    int m = 1;
+    if(res == 33){
+      m = 4;
+    }else if(res == 65){
+      m = 2;
+    }
   
     /*
     sendPort.send("index is: $index");
@@ -39,9 +47,9 @@ main(List<String> args, SendPort sendPort) {
     for(int i = 0; (i < waterBodies[index].length); i++){
       for(int j = 0; (j < waterBodies[index][i].length); j++){
         if(waterBodies[index][i][j] != 0){//current location is water
-          vertices.add(((minY + j.toDouble()) * 128/res-1) + (locX*128));
+          vertices.add(((minY + j.toDouble()) * m) + (locX*128));
           vertices.add(5.0);
-          vertices.add(((minX + i.toDouble()) * 128/res-1) + (locY*128));
+          vertices.add(((minX + i.toDouble()) * m) + (locY*128));
         }
       }
     }
@@ -74,37 +82,70 @@ main(List<String> args, SendPort sendPort) {
     int cp1 = null;
     int currentp1 = null;
     
-    for(int i = 0; i < waterBodies[index].length-1; i++){
-      for(int j = 0; j < waterBodies[index][i].length-1; j++){
+    for(int i = 0; i < waterBodies[index].length; i++){
+      for(int j = 0; j < waterBodies[index][i].length; j++){
         if (grid[i][j] != 0) {
-          if (grid[i+1][j] != 0) {
-            current = null;
-            cm1 = null;
-            cp1 = null;
-            currentp1 = null;
-            for (int k = 0; k < vert.length; k += 3) {
-              if (vert[k] == j && vert[k + 2] == i) {
-                current = k ~/ 3;
-              } else if (vert[k] == j + 1 && vert[k + 2] == i) {
-                currentp1 = k ~/ 3;
-              } else if (vert[k] == j && vert[k + 2] == i + 1) {
-                cm1 = k ~/ 3;
-              } else if (vert[k] == j + 1 && vert[k + 2] == i + 1) {
-                cp1 = k ~/ 3;
+          if(i+1 <= waterBodies[index].length-1){
+            if (grid[i+1][j] != 0) {
+              current = null;
+              cm1 = null;
+              cp1 = null;
+              currentp1 = null;
+              for (int k = 0; k < vert.length; k += 3) {
+                if (vert[k] == j && vert[k + 2] == i) {
+                  current = k ~/ 3;
+                } else if (vert[k] == j + 1 && vert[k + 2] == i) {
+                  currentp1 = k ~/ 3;
+                } else if (vert[k] == j && vert[k + 2] == i + 1) {
+                  cm1 = k ~/ 3;
+                } else if (vert[k] == j + 1 && vert[k + 2] == i + 1) {
+                  cp1 = k ~/ 3;
+                }
+              }
+              if (cp1 == null ||
+                  cm1 == null ||
+                  current == null ||
+                  currentp1 == null) {
+                //print("$i:, \n $j:");
+              } else {
+                indices.add(currentp1);
+                indices.add(cm1);
+                indices.add(cp1);
+                indices.add(current);
+                indices.add(currentp1);
+                indices.add(cm1);
               }
             }
-            if (cp1 == null ||
-                cm1 == null ||
-                current == null ||
-                currentp1 == null) {
-              //print("$i:, \n $j:");
-            } else {
-              indices.add(currentp1);
-              indices.add(cm1);
-              indices.add(cp1);
-              indices.add(current);
-              indices.add(currentp1);
-              indices.add(cm1);
+          }else {
+            if (grid[i-1][j] != 0) {
+              current = null;
+              cm1 = null;
+              cp1 = null;
+              currentp1 = null;
+              for (int k = 0; k < vert.length; k += 3) {
+                if (vert[k] == j && vert[k + 2] == i) {
+                  current = k ~/ 3;
+                } else if (vert[k] == j + 1 && vert[k + 2] == i) {
+                  currentp1 = k ~/ 3;
+                } else if (vert[k] == j && vert[k + 2] == i - 1) {
+                  cm1 = k ~/ 3;
+                } else if (vert[k] == j + 1 && vert[k + 2] == i - 1) {
+                  cp1 = k ~/ 3;
+                }
+              }
+              if (cp1 == null ||
+                  cm1 == null ||
+                  current == null ||
+                  currentp1 == null) {
+                //print("$i:, \n $j:");
+              } else {
+                indices.add(currentp1);
+                indices.add(cm1);
+                indices.add(cp1);
+                indices.add(current);
+                indices.add(currentp1);
+                indices.add(cm1);
+              }
             }
           }
         }
@@ -242,7 +283,7 @@ main(List<String> args, SendPort sendPort) {
       }     
     }
     
-    (blob.counter);
+    
    //if(blob.blobMap[math.min((i+minX[h]),128)][math.min((j+minY[h]),128)] == h+1){
     
     for(int h = 0; h < blob.counter; h++){
@@ -279,12 +320,12 @@ main(List<String> args, SendPort sendPort) {
                 waterBodies[h][i-1][j] = 200;
               }
             }
-            if(maxX[h] < res-1){
+            if(maxX[h] <= res){
               if(waterBodies[h][i+1][j] == 0){
                 waterBodies[h][i+1][j] = 200;
               }
             }
-            if(maxY[h] < res-1){
+            if(maxY[h] <= res){
               if(waterBodies[h][i][j+1] == 0){
                 waterBodies[h][i][j+1] = 200;
               }
@@ -294,17 +335,17 @@ main(List<String> args, SendPort sendPort) {
                 waterBodies[h][i-1][j-1] = 200;
               }
             }
-            if(maxY[h] < res-1 && maxX[h] <res-1){
+            if(maxY[h] <= res && maxX[h] <= res){
               if(waterBodies[h][i+1][j+1] == 0){
                 waterBodies[h][i+1][j+1] = 200;
               }
             }
-            if(minX[h] != 0 && maxY[h] < res-1){
+            if(minX[h] != 0 && maxY[h] <= res){
               if(waterBodies[h][i-1][j+1] == 0){
                 waterBodies[h][i-1][j+1] = 200;
               }
             }
-            if(minY[h] != 0 && maxX[h] < res-1){
+            if(minY[h] != 0 && maxX[h] <= res){
               if(waterBodies[h][i+1][j-1] == 0){
                 waterBodies[h][i+1][j-1] = 200;
               }
@@ -313,6 +354,13 @@ main(List<String> args, SendPort sendPort) {
         }
       }
     }
+    print("x: $locX, y: $locY");
+    for(int i = 0; i < blob.blobMap.length; i++){
+      print(blob.blobMap[i]);
+    }
+    print("--------------------");
+    
+    
     /*
     for(int i = 0; i < waterBodies.length; i++){
       print("--------------------");
@@ -332,6 +380,13 @@ main(List<String> args, SendPort sendPort) {
     double size;
     double y = 0.0;
     
+    int m = 1;
+    if(res == 33){
+      m = 4;
+    }else if(res == 65){
+      m = 2;
+    }
+    
     List vertices = new List();
     List verticesContainer = new List();
     
@@ -349,18 +404,18 @@ main(List<String> args, SendPort sendPort) {
         for(int i = 0; i < waterBodies[h].length; i++){
           for(int j = 0; j < waterBodies[h][i].length; j++){
             if(waterBodies[h][i][j] != 0){
-              if((waterBodies[h][i][j] == 200) || (minX + i == res) || (minY + j == res) || (minY + j == 1) || (minX + i == 1) ){//is an added edge, create points, but do not change the value
-                vertices.add(((minY + j.toDouble() ) * 128/res-1) + (locX*128));
+              if((waterBodies[h][i][j] == 200) || (minX + i == res-1) || (minY + j == res-1) || (minY + j == 1) || (minX + i == 1) ){//is an added edge, create points, but do not change the value
+                vertices.add(((minY + j.toDouble() ) * m) + (locX*128));
                 vertices.add(5.0);
-                vertices.add(((minX + i.toDouble() ) * 128/res-1) + (locY*128));
+                vertices.add(((minX + i.toDouble() ) * m) + (locY*128));
               }else{//change the height value
-                vertices.add(((minY + j.toDouble() ) * 128/res-1) + (locX*128));
+                vertices.add(((minY + j.toDouble() ) * m) + (locX*128));
                 //now add the new height value
                 y = perlinOctaveNoise(i*2/res, j*2/res, change, 1.0, 1+numOctaves, 1.0/math.sqrt(2.0))*50;
                 y = y + 1.0;
                 
                 vertices.add(y);
-                vertices.add(((minX + i.toDouble() ) * 128/res-1) + (locY*128));                
+                vertices.add(((minX + i.toDouble() ) * m) + (locY*128));                
               }
             }
           }
