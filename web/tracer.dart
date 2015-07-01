@@ -354,11 +354,12 @@ main(List<String> args, SendPort sendPort) {
         }
       }
     }
+    /*
     print("x: $locX, y: $locY");
     for(int i = 0; i < blob.blobMap.length; i++){
       print(blob.blobMap[i]);
     }
-    print("--------------------");
+    print("--------------------");*/
     
     
     /*

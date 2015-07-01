@@ -15,7 +15,7 @@ void main() {
   CanvasElement canvas = querySelector("#render-target"); 
   //canvas.requestFullscreen();
   RenderingContext gl = canvas.getContext3d();
-  
+
   var nexus = new core(gl, canvas);
     
   //set up the enviroment

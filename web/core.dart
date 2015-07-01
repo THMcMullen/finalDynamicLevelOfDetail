@@ -32,6 +32,16 @@ class core {
   water four;
 
   List landContainer;
+  List waterContainer;
+  
+  
+  //////for timing
+  DateTime startTime;
+  int genTime;
+  
+  bool check = false; 
+  int testSize = 1;
+  ////////////////
 
   //what all tiles base the size on
   int baseSystemSize = 129;
@@ -39,7 +49,7 @@ class core {
   core(RenderingContext gGl, CanvasElement gCanvas) {
     gl = gGl;
     canvas = gCanvas;
-
+    
     //setup camera and projection matrix
     camera = new cam.camera(canvas);
     projectionMat =
@@ -91,25 +101,37 @@ class core {
   }
 
   initWater() {
-    if (landContainer[0][0].heightMap == null ||
-        landContainer[0][1].heightMap == null ||
-        landContainer[1][0].heightMap == null ||
-        landContainer[1][1].heightMap == null /*||
-        landContainer[2][1].heightMap == null ||
-        landContainer[1][2].heightMap == null ||
-        landContainer[0][2].heightMap == null ||
-        landContainer[2][0].heightMap == null */
-    ) {
+    for(int i = 0; i < testSize; i++){
+      if(landContainer[0][i].heightMap == null){
+        check = false;
+      }
+    }
+    if(check == false){
+      check = true;
       new Future.delayed(const Duration(milliseconds: 15), initWater);
     } else {
-      baseWater = new water(gl, landContainer[0][0].heightMap, 0, 0, 1);
-      secondWater = new water(gl, landContainer[0][1].heightMap, 0, 1, 1);
-      three = new water(gl, landContainer[1][0].heightMap, 1, 0, 1);
-      four = new water(gl, landContainer[1][1].heightMap, 1, 1, 1);
-      makeEdge();
+      for(int i = 0; i < testSize; i++){
+        waterContainer[0][i] = new water(gl, landContainer[0][i].heightMap, 0, i, 1);
+      }
     }
   }
-
+  
+  endTime(){
+    for(int i = 0; i < testSize; i++){
+      if(landContainer[0][i].heightMap == null){
+        check = false;
+      }
+    }
+    if(check == false){
+      check = true;
+      new Future.delayed(const Duration(milliseconds: 15), endTime);
+    }else{
+      //genTime = new DateTime.now().difference(startTime).inMilliseconds.abs();
+      //print(genTime);
+      //print("end");
+    }
+  }
+  
   //creates the first tile in the system, based on performance recompute terrian state in order to best perfrom
   initState() {
     /*baseLand = new land_tile();
@@ -124,8 +146,29 @@ class core {
         landContainer[i].add(null);
       }
     }
+    
+    waterContainer = new List();
+    for (int i = 0; i < 100; i++) {
+      waterContainer.add(new List());
+      for (int j = 0; j < 100; j++) {
+        waterContainer[i].add(null);
+      }
+    }
 
-    landContainer[0][0] = new land_tile();
+    
+    for(int i = 0; i < testSize; i++){
+      landContainer[0][i] = new land_tile();
+      landContainer[0][i].initLand(gl, baseSystemSize, 0, i);
+    }
+    
+    //endTime();
+
+
+    
+   
+    
+
+   /* landContainer[0][0] = new land_tile();
     landContainer[0][0].initLand(gl, baseSystemSize, 0, 0);
 
     landContainer[0][1] = new land_tile();
@@ -135,7 +178,7 @@ class core {
     landContainer[1][0].initLand(gl, 65, 1, 0);
 
     landContainer[1][1] = new land_tile();
-    landContainer[1][1].initLand(gl, 33, 1, 1);
+    landContainer[1][1].initLand(gl, 33, 1, 1);*/
     
     /*landContainer[0][2] = new land_tile();
     landContainer[0][2].initLand(gl, 33, 0, 2);
@@ -148,7 +191,7 @@ class core {
     
     landContainer[2][1] = new land_tile();
     landContainer[2][1].initLand(gl, 65, 2, 1);*/
-
+    startTime = new DateTime.now();
     initWater();
   }
 
@@ -159,11 +202,10 @@ class core {
 
   update() {
     camera.update();
-    if (baseWater != null) {
-      baseWater.update();
-    }
-    if (secondWater != null) {
-      secondWater.update();
+    for(int i = 0; i < testSize; i++){
+      if(waterContainer[0][i] != null){
+        waterContainer[0][i].update();
+      }
     }
   }
 
@@ -365,25 +407,14 @@ class core {
     Matrix4 viewMat = camera.getViewMat();
 
     gl.bindTexture(TEXTURE_CUBE_MAP, skyBox);
-/*
-    landContainer[0][0].draw(viewMat, projectionMat);
-    landContainer[0][1].draw(viewMat, projectionMat);
-    landContainer[1][0].draw(viewMat, projectionMat);
-    landContainer[1][1].draw(viewMat, projectionMat);*/
     
     for(int i = 0; i < 100; i++){
       for(int j = 0; j < 100; j++){
-        if(landContainer[i][j] != null){
+        if(landContainer[i][j] != null && waterContainer[i][j] != null){
           landContainer[i][j].draw(viewMat, projectionMat);
+          waterContainer[i][j].draw(viewMat, projectionMat);
         }
       }
-    }
-    
-    if (baseWater != null && secondWater != null) {
-      baseWater.draw(viewMat, projectionMat);
-      secondWater.draw(viewMat, projectionMat);
-      three.draw(viewMat, projectionMat);
-      //four.draw(viewMat, projectionMat);
     }
   }
 }

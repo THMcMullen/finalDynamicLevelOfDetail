@@ -50,6 +50,14 @@ class land_tile{
   bool ready = false;
   bool edgeReady = false;
   
+  //////for timing
+  DateTime startTime;
+  DateTime isolateStartTime;
+  int isolateEndTime;
+  int genTime;
+
+  ////////////////
+  
   //when the class is constructed do nothing for the start
   land_tile(){
     //file containing all the infomation needed to proccess and adapt a land tile
@@ -74,6 +82,9 @@ class land_tile{
     numberOfTri = data[2].length;
     ready = true;
     
+    
+
+    
     //print(heightMap.length);
   }
   
@@ -83,6 +94,7 @@ class land_tile{
       new Future.delayed(const Duration(milliseconds: 15), dataSend);
     } else {
       //print("Sending");
+      startTime = new DateTime.now();
       sendPort.send(["init", res, locX, locY]); 
     }
   }
@@ -95,11 +107,15 @@ class land_tile{
         //print("Reveiving");
         switch(msg[0]){
           case "init":
+            genTime = new DateTime.now().difference(startTime).inMilliseconds.abs();
+            isolateEndTime = new DateTime.now().difference(isolateStartTime).inMilliseconds.abs();
+            print("LocY: $locY :::::: Land Gen Time:$genTime");
+            print("LocY: $locY :::::: Land Isolate Time:$isolateEndTime");
             setData(msg);
         }
       }
     });
-    
+    isolateStartTime = new DateTime.now();
     Isolate
            .spawnUri(Uri.parse(workerUri), [], receivePort.sendPort)
            .whenComplete(dataSend);
@@ -163,6 +179,9 @@ class land_tile{
   
     attribute = utils.linkAttributes(gl, shader, attrib);
     uniforms = utils.linkUniforms(gl, shader, unif);
+    
+
+    
     dataRec();
   }
   //topEdge,botEdge,iPlusOne,iMinusOne

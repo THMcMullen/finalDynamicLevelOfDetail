@@ -35,8 +35,15 @@ class water{
 
   bool ready = false;
   
-  
   RenderingContext gl;
+  
+  
+  //Testing Stuff
+  DateTime startTime;
+  DateTime isolateStartTime;
+  int isolateEndTime;
+  int endTime;
+  List timing = new List();
   
   water(RenderingContext gGl, List gHeighMap, int gLocX, int gLocY, int gState){
     //based on water state use a different isolate / method of simulating water
@@ -101,10 +108,11 @@ class water{
   
   traceS(){
     if(sendPort == null) {
-      print("Not ready yet");
+      //print("Not ready yet");
       new Future.delayed(const Duration(milliseconds: 15), traceS);
     } else {
-      print("Sending Base Water Info");
+      //print("Sending Base Water Info");
+      startTime = new DateTime.now();
       sendPort.send(["init", map, locX, locY]); 
     }
   }
@@ -116,14 +124,20 @@ class water{
       } else {
         //print(msg);
         if(msg[0] == "update"){
+          endTime = new DateTime.now().difference(startTime).inMilliseconds.abs();
+          timing.add(endTime);
           reloadVert(msg);
         }else{
+          endTime = new DateTime.now().difference(startTime).inMilliseconds.abs();
+          isolateEndTime = new DateTime.now().difference(isolateStartTime).inMilliseconds.abs();
+          print("$locY-----Time To Create Isolate: $isolateEndTime-------");
+          print("$locY-----Time To Init------------$endTime--------------");
           setup(msg);
         }
       }
     
     });
-  
+    isolateStartTime = new DateTime.now();
     Isolate
         .spawnUri(Uri.parse(workerUri), [], receivePort.sendPort)
         .whenComplete(traceS);
@@ -135,6 +149,7 @@ class water{
       new Future.delayed(const Duration(milliseconds: 15), updateS);
     } else {
       //print("requesting update");
+      startTime = new DateTime.now();
       sendPort.send(["update"]); 
     }
   }
@@ -207,6 +222,16 @@ class water{
       gl.bindBuffer(ARRAY_BUFFER, fluid[i][1]);
       gl.bufferDataTyped(RenderingContext.ARRAY_BUFFER, new Float32List.fromList(data[1][i]), DYNAMIC_DRAW);
       //print(data[1][i]);
+    }
+    
+    if(timing.length == 100){
+      int avg = 0;
+      for(int i = 0; i < 100; i++){
+        avg = avg + timing[i];
+      }
+      avg = avg ~/100;
+      timing = new List();
+      print("$locY:::::::::update timing::::::::$avg");
     }
 
     //print("------------------------------------------------------------------------------");
