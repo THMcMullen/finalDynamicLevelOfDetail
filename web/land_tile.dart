@@ -109,13 +109,13 @@ class land_tile{
           case "init":
             genTime = new DateTime.now().difference(startTime).inMilliseconds.abs();
             isolateEndTime = new DateTime.now().difference(isolateStartTime).inMilliseconds.abs();
-            print("LocY: $locY :::::: Land Gen Time:$genTime");
-            print("LocY: $locY :::::: Land Isolate Time:$isolateEndTime");
+            //print("LocY: $locY :::::: Land Gen Time:$genTime");
+            //print("LocY: $locY :::::: Land Isolate Time:$isolateEndTime");
             setData(msg);
         }
       }
     });
-    isolateStartTime = new DateTime.now();
+    isolateStartTime = new DateTime.fromMillisecondsSinceEpoch(0);
     Isolate
            .spawnUri(Uri.parse(workerUri), [], receivePort.sendPort)
            .whenComplete(dataSend);

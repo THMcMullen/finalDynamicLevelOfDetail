@@ -40,8 +40,8 @@ class water{
   
   //Testing Stuff
   DateTime startTime;
-  DateTime isolateStartTime;
-  int isolateEndTime;
+  int isolateStartTime;
+  int isolateEndTime = 0;
   int endTime;
   List timing = new List();
   
@@ -108,6 +108,7 @@ class water{
   
   traceS(){
     if(sendPort == null) {
+      
       //print("Not ready yet");
       new Future.delayed(const Duration(milliseconds: 15), traceS);
     } else {
@@ -124,20 +125,23 @@ class water{
       } else {
         //print(msg);
         if(msg[0] == "update"){
-          endTime = new DateTime.now().difference(startTime).inMilliseconds.abs();
-          timing.add(endTime);
+          //endTime = new DateTime.now().difference(startTime).inMilliseconds.abs();
+          //timing.add(endTime);
           reloadVert(msg);
         }else{
-          endTime = new DateTime.now().difference(startTime).inMilliseconds.abs();
-          isolateEndTime = new DateTime.now().difference(isolateStartTime).inMilliseconds.abs();
-          print("$locY-----Time To Create Isolate: $isolateEndTime-------");
-          print("$locY-----Time To Init------------$endTime--------------");
+          //endTime = new DateTime.now().difference(startTime).inMilliseconds.abs();
+          isolateEndTime = msg[2];
+          //print("$locY-----Time To Create Isolate: $isolateEndTime-------");
+          //print(isolateEndTime);
+          //print("$locY-----Time To Init------------$endTime--------------");
+          //print(msg[2] - isolateStartTime);
           setup(msg);
         }
       }
     
     });
-    isolateStartTime = new DateTime.now();
+    isolateStartTime = new DateTime.now().millisecondsSinceEpoch;
+    
     Isolate
         .spawnUri(Uri.parse(workerUri), [], receivePort.sendPort)
         .whenComplete(traceS);
@@ -231,7 +235,7 @@ class water{
       }
       avg = avg ~/100;
       timing = new List();
-      print("$locY:::::::::update timing::::::::$avg");
+      //print("$locY:::::::::update timing::::::::$avg");
     }
 
     //print("------------------------------------------------------------------------------");

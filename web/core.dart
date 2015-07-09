@@ -40,7 +40,8 @@ class core {
   int genTime;
   
   bool check = false; 
-  int testSize = 1;
+  int testSize = 64;
+  List avg;
   ////////////////
 
   //what all tiles base the size on
@@ -49,6 +50,9 @@ class core {
   core(RenderingContext gGl, CanvasElement gCanvas) {
     gl = gGl;
     canvas = gCanvas;
+    print("hello");
+    
+    avg = new List<int>(testSize);
     
     //setup camera and projection matrix
     camera = new cam.camera(canvas);
@@ -110,9 +114,43 @@ class core {
       check = true;
       new Future.delayed(const Duration(milliseconds: 15), initWater);
     } else {
-      for(int i = 0; i < testSize; i++){
+      for(int i = 0; i < testSize; i++){        
         waterContainer[0][i] = new water(gl, landContainer[0][i].heightMap, 0, i, 1);
       }
+      waterTiming();
+    }
+  }
+  
+  bool waterCheck = false;
+  int minTime;
+  int maxTime;
+  
+  waterTiming(){
+    for(int i = 0; i < testSize; i++){
+      if(waterContainer[0][i].isolateEndTime == 0){
+        waterCheck = false;
+      }
+    }
+    if(waterCheck == false){
+      waterCheck = true;
+      new Future.delayed(const Duration(milliseconds: 15), waterTiming);
+    } else {
+      for(int i = 0; i < testSize; i++){        
+        if(i == 0){
+          minTime = waterContainer[0][i].isolateStartTime;
+          maxTime = waterContainer[0][i].isolateEndTime;
+        } else {
+          if(minTime > waterContainer[0][i].isolateStartTime){
+            minTime = waterContainer[0][i].isolateStartTime;
+          }
+          if(maxTime < waterContainer[0][i].isolateEndTime){
+            maxTime = waterContainer[0][i].isolateEndTime;
+          }
+        }
+      }
+      print(minTime);
+      print(maxTime);
+      print(maxTime - minTime);
     }
   }
   
@@ -199,14 +237,32 @@ class core {
   setup() {
     initState();
   }
-
+bool waterReady = true;
   update() {
+    
     camera.update();
     for(int i = 0; i < testSize; i++){
       if(waterContainer[0][i] != null){
         waterContainer[0][i].update();
+        avg[i] = waterContainer[0][i].isolateEndTime;
       }
     }
+    for(int i = 0; i < testSize; i++){
+      if(avg[i] == null){
+        waterReady = false;
+      }
+    }
+    
+    if(waterReady){
+      double avg2 = 0.0;
+      for(int i = 0; i < testSize; i++){
+        avg2 = avg2 + avg[i].toDouble();
+      }
+      avg2 = avg2 / testSize;
+      //window.console.log(avg2);
+    }
+    
+    waterReady = true;
   }
 
   List edgeIncrease(List edge) {

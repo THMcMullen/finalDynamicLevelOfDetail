@@ -5,6 +5,7 @@ import 'contour_tracing.dart';
 import 'package:vector_math/vector_math.dart';
 import 'perlin_noise.dart';
 
+
 main(List<String> args, SendPort sendPort) {
   ReceivePort receivePort = new ReceivePort();
   sendPort.send(receivePort.sendPort);
@@ -20,6 +21,9 @@ main(List<String> args, SendPort sendPort) {
   
   int numOctaves = 1;
   double change = 1.0;
+  
+  int startTime;
+
   
   List createVertices(int index){
     List vertices = new List();
@@ -233,11 +237,14 @@ main(List<String> args, SendPort sendPort) {
       }
     }
     
-    sendPort.send([fluid, static]);
+    sendPort.send([fluid, static, startTime]);
     
   }
 
   trace(data){
+    
+    
+    
     contour_tracing blob;
     //create a blob map, containing all bodies of water
     blob = new contour_tracing(data);
@@ -430,7 +437,8 @@ main(List<String> args, SendPort sendPort) {
   
   receivePort.listen((msg) {
     //sendPort.send("Recieved Water");
-    
+    startTime = new DateTime.now().millisecondsSinceEpoch;
+
     if(msg[0] == "init"){
       res = msg[1].length;
       locX = msg[2];
