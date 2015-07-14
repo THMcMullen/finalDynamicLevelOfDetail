@@ -40,7 +40,7 @@ class core {
   int genTime;
   
   bool check = false; 
-  int testSize = 64;
+  int testSize = 16;
   List avg;
   ////////////////
 
@@ -148,8 +148,8 @@ class core {
           }
         }
       }
-      print(minTime);
-      print(maxTime);
+      //print(minTime);
+      //print(maxTime);
       print(maxTime - minTime);
     }
   }

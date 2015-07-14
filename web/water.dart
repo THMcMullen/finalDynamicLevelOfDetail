@@ -39,7 +39,7 @@ class water{
   
   
   //Testing Stuff
-  DateTime startTime;
+  int startTime;
   int isolateStartTime;
   int isolateEndTime = 0;
   int endTime;
@@ -113,7 +113,7 @@ class water{
       new Future.delayed(const Duration(milliseconds: 15), traceS);
     } else {
       //print("Sending Base Water Info");
-      startTime = new DateTime.now();
+      isolateStartTime = new DateTime.now().millisecondsSinceEpoch;
       sendPort.send(["init", map, locX, locY]); 
     }
   }
@@ -129,8 +129,8 @@ class water{
           //timing.add(endTime);
           reloadVert(msg);
         }else{
-          //endTime = new DateTime.now().difference(startTime).inMilliseconds.abs();
-          isolateEndTime = msg[2];
+          
+          isolateEndTime = new DateTime.now().millisecondsSinceEpoch;
           //print("$locY-----Time To Create Isolate: $isolateEndTime-------");
           //print(isolateEndTime);
           //print("$locY-----Time To Init------------$endTime--------------");
@@ -140,7 +140,7 @@ class water{
       }
     
     });
-    isolateStartTime = new DateTime.now().millisecondsSinceEpoch;
+    
     
     Isolate
         .spawnUri(Uri.parse(workerUri), [], receivePort.sendPort)
@@ -153,7 +153,7 @@ class water{
       new Future.delayed(const Duration(milliseconds: 15), updateS);
     } else {
       //print("requesting update");
-      startTime = new DateTime.now();
+      startTime = new DateTime.now().millisecondsSinceEpoch;
       sendPort.send(["update"]); 
     }
   }
