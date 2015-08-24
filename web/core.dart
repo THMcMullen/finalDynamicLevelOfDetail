@@ -40,12 +40,16 @@ class core {
   int genTime;
   
   bool check = false; 
+<<<<<<< Updated upstream
   int testSize = 1;
+=======
+  int testSize = 12;
+>>>>>>> Stashed changes
   List avg;
   ////////////////
 
   //what all tiles base the size on
-  int baseSystemSize = 129;
+  int baseSystemSize = 33;
 
   core(RenderingContext gGl, CanvasElement gCanvas) {
     gl = gGl;
