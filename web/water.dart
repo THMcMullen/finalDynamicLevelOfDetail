@@ -42,8 +42,9 @@ class water{
   int startTime;
   int isolateStartTime;
   int isolateEndTime = 0;
-  int endTime;
-  List timing = new List();
+  int endTime = 0;
+  int updateCount = 0;
+
   
   water(RenderingContext gGl, List gHeighMap, int gLocX, int gLocY, int gState){
     //based on water state use a different isolate / method of simulating water
@@ -55,6 +56,7 @@ class water{
     locY = gLocY;
     
     workerUri = 'tracer.dart';//define what isolate to use
+    //workerUri = 'water_isolate.dart';
     
     String vertex = """
         attribute vec3 aVertexPosition;
@@ -103,7 +105,99 @@ class water{
     uniforms = utils.linkUniforms(gl, shader, unif);
     
     traceR();
+    //shallowWaterR();
     
+  }
+  
+  
+  shallowWaterR(){
+    receivePort.listen((msg) {
+      if (sendPort == null) {
+        sendPort = msg;
+      } else {
+        if(msg[0] == "update"){
+          endTime = new DateTime.now().millisecondsSinceEpoch;
+          shallowWaterRV(msg);
+        }else{
+          isolateEndTime = msg[4];
+          //endTime = new DateTime.now().millisecondsSinceEpoch;
+          
+          swSetup(msg);
+        }
+      }
+    
+    });
+
+    isolateStartTime = new DateTime.now().millisecondsSinceEpoch;
+    
+    Isolate
+        .spawnUri(Uri.parse(workerUri), [], receivePort.sendPort)
+        .whenComplete(shallowWaterS);
+  }
+  
+  shallowWaterUpdateS(){
+    if(sendPort == null) {
+      print("Not ready yet");
+      new Future.delayed(const Duration(milliseconds: 15), shallowWaterUpdateS);
+    } else {
+      //print("requesting update");
+      //startTime = new DateTime.now().millisecondsSinceEpoch;
+      sendPort.send(["update"]); 
+    }
+  }
+  
+  
+  shallowWaterS(){
+    if(sendPort == null) {
+      new Future.delayed(const Duration(milliseconds: 15), shallowWaterS);
+    } else {
+      
+      sendPort.send(["init", map, map.length, locX, locY]); 
+    }
+  }
+  
+  shallowWaterRV(data){
+
+    for(int i = 0; i < fluid.length; i++){
+      gl.bindBuffer(ARRAY_BUFFER, fluid[i][1]);
+      gl.bufferDataTyped(RenderingContext.ARRAY_BUFFER, new Float32List.fromList(data[1]), DYNAMIC_DRAW);
+    }
+    
+    //print(endTime - startTime);
+
+  }
+  
+  
+  swSetup(data){
+    fluid = new List(1);
+       
+    List fIndices = new List(data[1].length);
+    List fVertices = new List(data[2].length);
+    List fNormals = new List(data[3].length);
+    
+    for(int i = 0; i < fluid.length; i++){
+      fluid[i] = new List(4);
+      
+      fIndices[i] = gl.createBuffer();
+      gl.bindBuffer(RenderingContext.ELEMENT_ARRAY_BUFFER, fIndices[i]);
+      gl.bufferDataTyped(RenderingContext.ELEMENT_ARRAY_BUFFER, new Uint16List.fromList(data[1]), STATIC_DRAW);
+      fluid[i][0] = fIndices[i];
+      
+      fVertices[i] = gl.createBuffer();
+      gl.bindBuffer(RenderingContext.ARRAY_BUFFER, fVertices[i]);
+      gl.bufferDataTyped(RenderingContext.ARRAY_BUFFER, new Float32List.fromList(data[2]), DYNAMIC_DRAW);
+      fluid[i][1] = fVertices[i];
+      
+      fNormals[i] = gl.createBuffer();
+      gl.bindBuffer(RenderingContext.ARRAY_BUFFER, fNormals[i]);
+      gl.bufferDataTyped(RenderingContext.ARRAY_BUFFER, new Float32List.fromList(data[3]), STATIC_DRAW);
+      fluid[i][2] = fNormals[i];
+      
+      fluid[i][3] = data[1].length;   
+
+    }
+
+    ready = true;
   }
   
   traceS(){
@@ -113,7 +207,7 @@ class water{
       new Future.delayed(const Duration(milliseconds: 15), traceS);
     } else {
       //print("Sending Base Water Info");
-      isolateStartTime = new DateTime.now().millisecondsSinceEpoch;
+      //isolateStartTime = new DateTime.now().millisecondsSinceEpoch;
       sendPort.send(["init", map, locX, locY]); 
     }
   }
@@ -125,11 +219,12 @@ class water{
       } else {
         //print(msg);
         if(msg[0] == "update"){
-          //endTime = new DateTime.now().difference(startTime).inMilliseconds.abs();
-          //timing.add(endTime);
+          endTime = new DateTime.now().millisecondsSinceEpoch;
+          //print(endTime - startTime);
+          //timing.add(endTime - startTime);
           reloadVert(msg);
         }else{
-          
+          //print("DataR");
           isolateEndTime = new DateTime.now().millisecondsSinceEpoch;
           //print("$locY-----Time To Create Isolate: $isolateEndTime-------");
           //print(isolateEndTime);
@@ -157,6 +252,8 @@ class water{
       sendPort.send(["update"]); 
     }
   }
+  
+
   
   setup(data){
     
@@ -227,7 +324,8 @@ class water{
       gl.bufferDataTyped(RenderingContext.ARRAY_BUFFER, new Float32List.fromList(data[1][i]), DYNAMIC_DRAW);
       //print(data[1][i]);
     }
-    
+    //print(endTime - startTime);
+    /*
     if(timing.length == 100){
       int avg = 0;
       for(int i = 0; i < 100; i++){
@@ -235,8 +333,8 @@ class water{
       }
       avg = avg ~/100;
       timing = new List();
-      //print("$locY:::::::::update timing::::::::$avg");
-    }
+      print("$locY:::::::::update timing::::::::$avg");
+    }*/
 
     //print("------------------------------------------------------------------------------");
   }
@@ -245,8 +343,7 @@ class water{
   update(){
     if(ready){//make sure the data is loaded before trying anything
       //for every fluid body of water, update teh vertices
-      updateS();
-      
+      updateS();     
     }
   }
   

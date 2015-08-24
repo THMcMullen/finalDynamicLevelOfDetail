@@ -9,6 +9,8 @@ main(List<String> args, SendPort sendPort) {
   ReceivePort receivePort = new ReceivePort();
   sendPort.send(receivePort.sendPort);
   
+  int startTime;
+  
   //tells where we are located on the grid
   int locX;
   int locY;
@@ -40,14 +42,11 @@ main(List<String> args, SendPort sendPort) {
     
     var height = 10;
     var rng = new math.Random(82);//locX + locY + 82);
-    
-    int sideLength2 = res - 1; 
+
     //diamond square implemtation
     for (int sideLength = res - 1; sideLength >= 2; sideLength = sideLength ~/ 2, height /= 2) {
 
       int halfSide = sideLength ~/ 2;
-      int halfSide2 = sideLength2 ~/ 2;
-      int QSide2 = halfSide2 ~/ 2;
 
       for (int x = 0; x < res - 1; x += sideLength) {
         for (int y = 0; y < res - 1; y += sideLength) {
@@ -88,11 +87,14 @@ main(List<String> args, SendPort sendPort) {
         vertices.add(j * (128 / (res - 1)) + (128 * locY));       
       }
     }
-    sendPort.send(["init", heightMap, indices, vertices]);
+    sendPort.send(["init", heightMap, indices, vertices, startTime]);
   }
   
   //once a comand has been sent, proccess it and return the needed changes
   receivePort.listen((msg) {
+    
+    startTime = new DateTime.now().millisecondsSinceEpoch;
+    
     if(msg[0] == "init"){
       init(msg);
     }

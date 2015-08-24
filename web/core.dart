@@ -40,7 +40,7 @@ class core {
   int genTime;
   
   bool check = false; 
-  int testSize = 16;
+  int testSize = 1;
   List avg;
   ////////////////
 
@@ -50,7 +50,7 @@ class core {
   core(RenderingContext gGl, CanvasElement gCanvas) {
     gl = gGl;
     canvas = gCanvas;
-    print("hello");
+    print("Test Size: $testSize, SystemSize: $baseSystemSize");
     
     avg = new List<int>(testSize);
     
@@ -103,7 +103,15 @@ class core {
 
     Future.wait(futures).then((_) => loadTextures());
   }
+  
+  bool waterCheck = false;
+  int minTime;
+  int maxTime;
 
+  int minTime1;
+  int maxTime1;
+  
+  
   initWater() {
     for(int i = 0; i < testSize; i++){
       if(landContainer[0][i].heightMap == null){
@@ -115,15 +123,31 @@ class core {
       new Future.delayed(const Duration(milliseconds: 15), initWater);
     } else {
       for(int i = 0; i < testSize; i++){        
-        waterContainer[0][i] = new water(gl, landContainer[0][i].heightMap, 0, i, 1);
+        waterContainer[0][i] = new water(gl, landContainer[0][i].heightMap, 0, i, 1);       
       }
-      waterTiming();
+      //waterTiming();
+      //landTiming();
     }
   }
   
-  bool waterCheck = false;
-  int minTime;
-  int maxTime;
+  landTiming(){
+    for(int i = 0; i < testSize; i++){        
+      if(i == 0){
+        minTime = landContainer[0][i].isolateStartTime;
+        maxTime = landContainer[0][i].isolateEndTime;
+      } else {
+        if(minTime > landContainer[0][i].isolateStartTime){
+          minTime = landContainer[0][i].isolateStartTime;
+        }
+        if(maxTime < landContainer[0][i].isolateEndTime){
+          maxTime = landContainer[0][i].isolateEndTime;
+        }
+      }
+    }
+    int t = (maxTime - minTime);
+    print("LandTime $t");
+  }
+
   
   waterTiming(){
     for(int i = 0; i < testSize; i++){
@@ -148,9 +172,8 @@ class core {
           }
         }
       }
-      //print(minTime);
-      //print(maxTime);
-      print(maxTime - minTime);
+      int t = (maxTime - minTime);
+      print("waterTime $t");
     }
   }
   
@@ -192,6 +215,8 @@ class core {
         waterContainer[i].add(null);
       }
     }
+    
+    
 
     
     for(int i = 0; i < testSize; i++){
@@ -201,10 +226,6 @@ class core {
     
     //endTime();
 
-
-    
-   
-    
 
    /* landContainer[0][0] = new land_tile();
     landContainer[0][0].initLand(gl, baseSystemSize, 0, 0);
@@ -229,7 +250,7 @@ class core {
     
     landContainer[2][1] = new land_tile();
     landContainer[2][1].initLand(gl, 65, 2, 1);*/
-    startTime = new DateTime.now();
+    
     initWater();
   }
 
@@ -238,31 +259,16 @@ class core {
     initState();
   }
 bool waterReady = true;
+
   update() {
     
     camera.update();
     for(int i = 0; i < testSize; i++){
       if(waterContainer[0][i] != null){
         waterContainer[0][i].update();
-        avg[i] = waterContainer[0][i].isolateEndTime;
       }
     }
-    for(int i = 0; i < testSize; i++){
-      if(avg[i] == null){
-        waterReady = false;
-      }
-    }
-    
-    if(waterReady){
-      double avg2 = 0.0;
-      for(int i = 0; i < testSize; i++){
-        avg2 = avg2 + avg[i].toDouble();
-      }
-      avg2 = avg2 / testSize;
-      //window.console.log(avg2);
-    }
-    
-    waterReady = true;
+
   }
 
   List edgeIncrease(List edge) {

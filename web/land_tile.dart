@@ -51,8 +51,8 @@ class land_tile{
   bool edgeReady = false;
   
   //////for timing
-  DateTime startTime;
-  DateTime isolateStartTime;
+  int startTime;
+  int isolateStartTime;
   int isolateEndTime;
   int genTime;
 
@@ -94,7 +94,8 @@ class land_tile{
       new Future.delayed(const Duration(milliseconds: 15), dataSend);
     } else {
       //print("Sending");
-      startTime = new DateTime.now();
+      //startTime = new DateTime.now().millisecondsSinceEpoch;
+      isolateStartTime = new DateTime.now().millisecondsSinceEpoch;
       sendPort.send(["init", res, locX, locY]); 
     }
   }
@@ -106,16 +107,15 @@ class land_tile{
       } else {
         //print("Reveiving");
         switch(msg[0]){
-          case "init":
-            genTime = new DateTime.now().difference(startTime).inMilliseconds.abs();
-            isolateEndTime = new DateTime.now().difference(isolateStartTime).inMilliseconds.abs();
-            //print("LocY: $locY :::::: Land Gen Time:$genTime");
-            //print("LocY: $locY :::::: Land Isolate Time:$isolateEndTime");
+          case "init":         
+            isolateEndTime = msg[4];
             setData(msg);
         }
       }
     });
-    isolateStartTime = new DateTime.fromMillisecondsSinceEpoch(0);
+    
+   
+    
     Isolate
            .spawnUri(Uri.parse(workerUri), [], receivePort.sendPort)
            .whenComplete(dataSend);
